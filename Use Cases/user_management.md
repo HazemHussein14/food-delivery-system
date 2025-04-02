@@ -275,16 +275,26 @@ function resetPassword(token, newPassword) {
 
 #### 2.4.1 Update Profile Flowchart
 
-[INSERT UPDATE PROFILE Flowchart IMAGE HERE]
+![Update Profile Flowchart](../imgs/flowcharts/update-profile-FL.drawio.png)
 
 #### 2.4.2 Update Profile Sequence Diagram
 
-[INSERT UPDATE PROFILE SEQUENCE DIAGRAM IMAGE HERE]
+![Update Profile Sequence Diagram](../imgs/sequence-diagrams/update-profile.png)
 
 #### 2.4.3 Update Profile Pseudocode
 
-```
-// Your Update Profile pseudocode will go here
+```js
+function updateProfile(userId, newProfileData) {
+  let user = getUserById(userId);
+
+  if (!user) {
+    return "User not found";
+  }
+
+  let updatedUser = updateUserInDatabase(userId, newProfileData);
+
+  return updatedUser ? "Profile updated successfully" : "Profile update failed";
+}
 ```
 
 ### 2.5 Enable/Disable Account
@@ -318,16 +328,28 @@ function resetPassword(token, newPassword) {
 #### 2.5.3 Enable/Disable Account Pseudocode
 
 ```js
-function updateProfile(userId, newProfileData) {
-  const user = getUserById(userId);
+function enableAccount(userId) {
+  let user = getUserById(userId);
 
   if (!user) {
     return "User not found";
   }
 
-  const updatedUser = updateUserInDatabase(userId, newProfileData);
+  updateUserStatus(userId, "active");
 
-  return updatedUser ? "Profile updated successfully" : "Profile update failed";
+  return "Account enabled successfully";
+}
+
+function disableAccount(userId) {
+  let user = getUserById(userId);
+
+  if (!user) {
+    return "User not found";
+  }
+
+  updateUserStatus(userId, "inactive");
+
+  return "Account disabled successfully";
 }
 ```
 
