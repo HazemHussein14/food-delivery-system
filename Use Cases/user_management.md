@@ -32,10 +32,19 @@
     - [Flowchart](#261-logout-flow-diagram)
     - [Sequence Diagram](#262-logout-sequence-diagram)
     - [Pseudocode](#263-logout-pseudocode)
+  - [2.7 Social Media Authentication](#27-social-media-authentication)
+    - [Flowchart](#271-social-media-authentication-flow-diagram)
+    - [Sequence Diagram](#272-social-media-authentication-sequence-diagram)
+    - [Pseudocode](#273-social-media-authentication-pseudocode)
+  - [2.8 Email Verification](#28-email-verification)
+    - [Flowchart](#281-email-verification-flow-diagram)
+    - [Sequence Diagram](#282-email-verification-sequence-diagram)
+    - [Pseudocode](#283-email-verification-pseudocode)
 - [3. Business Rules](#3-business-rules)
   - [3.1 Password Policy](#31-password-policy)
   - [3.2 Account Security](#32-account-security)
   - [3.3 Session Management](#33-session-management)
+  - [3.4 Social Authentication Policy](#34-social-authentication-policy)
 
 ## 1. Use Case Overview
 
@@ -48,6 +57,7 @@ This use case describes the processes by which users register for and authentica
 - **Customer** - End user of the application who orders food
 - **Administrator** - System administrator who manages user accounts
 - **System** - The food ordering application system
+- **Third-Party Auth Provider** - External identity provider (Google, Facebook, etc.)
 
 ### 1.3 Preconditions
 
@@ -252,6 +262,8 @@ function resetPassword(token, newPassword) {
 }
 ```
 
+---
+
 ### 2.4 Update Profile
 
 #### Main Flow
@@ -296,6 +308,8 @@ function updateProfile(userId, newProfileData) {
   return updatedUser ? "Profile updated successfully" : "Profile update failed";
 }
 ```
+
+---
 
 ### 2.5 Enable/Disable Account
 
@@ -353,13 +367,7 @@ function disableAccount(userId) {
 }
 ```
 
-### 2.6 Logout
-
-#### Main Flow
-
-1. Authenticated user selects "Logout" option
-2. System ends user session
-3. System redirects user to the login page
+---
 
 ### 2.6 Logout
 
@@ -393,6 +401,157 @@ function logout() {
 
 ---
 
+### 2.7 Social Media Authentication
+
+#### Main Flow
+
+1. User selects "Sign in with [Provider]" option (Google, Facebook, etc.)
+2. System redirects to the authentication page of the selected provider
+3. User authorizes the application on the provider's page
+4. Provider redirects back to the application with authentication token
+5. System validates the token with the provider
+6. System checks if the user exists in the database
+7. If user doesn't exist, system creates a new account with information from provider
+8. If user exists, system links the social account to the existing user account
+9. System generates application authentication token
+10. System redirects user to the application home page
+
+#### Alternative Flows
+
+- **A1: Authorization Denied**
+  1. User denies authorization on the provider's page
+  2. Provider redirects back with error
+  3. System displays error message
+  4. User can try again or use another authentication method
+- **A2: Account Linking**
+  1. Email from social provider matches existing email in system
+  2. System asks user to link accounts or login to existing account
+  3. User chooses preferred action
+
+#### 2.7.1 Social Media Authentication Flow Diagram
+
+![Social Media Authentication Flowchart](../imgs/flowcharts/OAuth-flowchart.drawio.png)
+
+#### 2.7.2 Social Media Authentication Sequence Diagram
+
+![Social Media Authentication Sequence Diagram](../imgs/sequence-diagrams/oauth.png)
+
+#### 2.7.3 Social Media Authentication Pseudocode
+
+```js
+function initiateOAuthFlow(provider) {
+  const authUrl = getOAuthUrl(provider);
+  redirectToUrl(authUrl);
+}
+
+function handleOAuthCallback(providerToken, provider) {
+  // Validate token with provider
+  const userData = verifyTokenWithProvider(providerToken, provider);
+
+  if (!userData) {
+    return "Authentication failed";
+  }
+
+  // Check if user exists with the provided email
+  let user = getUserByEmail(userData.email);
+
+  if (!user) {
+    // Create new user
+    user = createUserFromOAuth(userData, provider);
+  } else {
+    // Link social account to existing user
+    linkSocialAccount(user.id, provider, userData.providerId);
+  }
+
+  // Generate JWT for our application
+  const jwtToken = generateJWT(user);
+
+  return { message: "Login successful", token: jwtToken, user };
+}
+```
+
+---
+
+### 2.8 Email Verification
+
+#### Main Flow
+
+1. User receives email with verification link/code
+2. User clicks on verification link or enters code in the application
+3. System validates the verification token
+4. System updates user account status to verified
+5. System displays confirmation message
+6. System redirects user to appropriate page (login or home)
+
+#### Alternative Flows
+
+- **A1: Invalid or Expired Token**
+  1. System identifies invalid or expired verification token
+  2. System displays error message
+  3. System offers option to resend verification email
+- **A2: Resend Verification**
+  1. User requests new verification email
+  2. System generates new verification token
+  3. System sends new verification email
+  4. System displays confirmation message
+
+#### 2.8.1 Email Verification Flow Diagram
+
+![Email Verification Flowchart](../imgs/flowcharts/Email-Verification-flowchart.drawio.png)
+
+#### 2.8.2 Email Verification Sequence Diagram
+
+![Email Verification Sequence Diagram](../imgs/sequence-diagrams/verify-email.png)
+
+#### 2.8.3 Email Verification Pseudocode
+
+```js
+function verifyEmail(token) {
+  const verificationRecord = getVerificationByToken(token);
+
+  if (!verificationRecord || isTokenExpired(verificationRecord)) {
+    return "Invalid or expired verification token";
+  }
+
+  const user = getUserById(verificationRecord.userId);
+
+  if (!user) {
+    return "User not found";
+  }
+
+  updateUserVerificationStatus(user.id, true);
+  removeVerificationToken(token);
+
+  return "Email verified successfully";
+}
+
+function resendVerificationEmail(userId) {
+  const user = getUserById(userId);
+
+  if (!user) {
+    return "User not found";
+  }
+
+  if (user.isVerified) {
+    return "Email already verified";
+  }
+
+  // Remove old verification tokens
+  removeAllVerificationTokens(userId);
+
+  // Generate new token
+  const newToken = generateVerificationToken();
+  saveVerificationToken(userId, newToken, expiresIn=24_hours);
+
+  // Send new verification email
+  sendVerificationEmail(user.email, newToken);
+
+  return "Verification email sent successfully";
+}
+```
+
+---
+
 ## 3. Business Rules
 
 ### 3.1 Password Policy
@@ -414,3 +573,9 @@ function logout() {
 - User sessions expire after 24 hours of inactivity
 - Refresh tokens valid for 7 days
 - Users can be logged in on multiple devices simultaneously
+
+### 3.4 Social Authentication Policy
+
+- Users can link multiple social accounts to one application account
+- Email from social provider must match application email for automatic linking
+- Users can unlink social accounts as long as they have password authentication or another social provider linked
