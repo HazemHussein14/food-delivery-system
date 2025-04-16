@@ -1,11 +1,3 @@
----
-tags:
-  - Projects
-  - api-design
----
-
----
-
 ### **User Registration & Authentication**
 
 | Function                   | Method | Endpoint                              | Input                                   | Output        |
