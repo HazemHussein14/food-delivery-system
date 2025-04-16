@@ -10,6 +10,7 @@
 - [Assumptions](#assumptions)
 - [Use Cases](#use-cases)
 - [Data Model](#data-model)
+- [API Design](./API%20Design.md)
 
 ## Project Vision
 
