@@ -1,3 +1,5 @@
-*.bkp
-*.drawio
-*puml
+node_modules
+package-lock.json
+
+# Swagger Autogen output
+swagger-output.json
