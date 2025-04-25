@@ -11,6 +11,7 @@
 - [Use Cases](#use-cases)
 - [Data Model](#data-model)
 - [API Design](./API%20Design.md)
+- [API Docs](#api-documentation)
 
 ## Project Vision
 
@@ -143,3 +144,35 @@ The system's data model consists of the following key entities and relationships
 - **OAuth_Provider**: Handles third-party authentication
 
 The data model supports the security requirements through role-based access control and maintains relationships between users, roles, and permissions.
+
+---
+
+Sure! Here's a cleaner and more polished version of that section for your `README.md`:
+
+---
+
+## API Documentation
+
+### Installation
+
+```bash
+npm install
+```
+
+### Run with Swagger Documentation
+
+Generate Swagger docs and start the development server:
+
+```bash
+npm run start:with-docs
+```
+
+### Generate Swagger Docs Only
+
+If you want to generate the Swagger documentation without starting the server:
+
+```bash
+npm run swagger
+```
+
+---
